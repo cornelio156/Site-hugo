@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: videosplus
+    env: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_APPWRITE_PROJECT_ID
+        fromDatabase:
+          name: appwrite
+          property: projectId
+      - key: VITE_APPWRITE_API_KEY
+        fromDatabase:
+          name: appwrite
+          property: apiKey
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        fromDatabase:
+          name: stripe
+          property: publishableKey
+      - key: VITE_API_URL
+        value: https://videosplus.onrender.com
