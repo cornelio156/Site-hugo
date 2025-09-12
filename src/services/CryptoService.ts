@@ -176,6 +176,36 @@ export class CryptoService {
   }
 
   /**
+   * Criptografa um nome de arquivo
+   * @param fileName - Nome do arquivo
+   * @returns Nome criptografado com IV
+   */
+  static encryptFileName(fileName: string): string {
+    if (!fileName || fileName.trim() === '') return fileName;
+    const { encrypted, iv } = this.encrypt(fileName);
+    return `${encrypted}:${iv}`;
+  }
+
+  /**
+   * Descriptografa um nome de arquivo
+   * @param encryptedFileName - Nome criptografado
+   * @returns Nome descriptografado
+   */
+  static decryptFileName(encryptedFileName: string): string {
+    if (!encryptedFileName || encryptedFileName.trim() === '') return encryptedFileName;
+    try {
+      const [encrypted, iv] = encryptedFileName.split(':');
+      if (!encrypted || !iv) {
+        return encryptedFileName; // Retorna o original se não conseguir separar
+      }
+      return this.decrypt(encrypted, iv);
+    } catch (error) {
+      console.error('Erro ao descriptografar nome do arquivo:', error);
+      return encryptedFileName; // Retorna o original em caso de erro
+    }
+  }
+
+  /**
    * Verifica se uma string está criptografada (contém ':')
    * @param text - Texto a verificar
    * @returns true se estiver criptografado

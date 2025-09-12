@@ -5,7 +5,7 @@ import { useAuth } from '../services/Auth';
 import { VideoService } from '../services/VideoService';
 import { AppwriteSchemaManager } from '../services/AppwriteSchemaManager';
 import { CryptoService } from '../services/CryptoService';
-import { ID } from 'appwrite';
+import { ID, Permission, Role } from 'appwrite';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { databases, databaseId, storage, videoCollectionId, siteConfigCollectionId, userCollectionId, videosBucketId, thumbnailsBucketId } from '../services/node_appwrite';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -417,6 +417,15 @@ const Admin: FC = () => {
     setEditingVideo(null);
   };
   
+  // Helper function to create encrypted file name
+  const createEncryptedFileName = (originalFileName: string, fileType: 'video' | 'thumbnail'): string => {
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const encryptedName = CryptoService.encryptFileName(originalFileName);
+    const extension = originalFileName.split('.').pop() || '';
+    return `${fileType}_${timestamp}_${randomSuffix}_${encryptedName}.${extension}`;
+  };
+
   // Upload video and thumbnail
   const handleVideoUpload = async () => {
     if (!videoTitle || !videoDescription || !videoPrice || !productLink) {
@@ -460,11 +469,16 @@ const Admin: FC = () => {
             }
           }
           
-          // Upload new thumbnail
+          // Create encrypted file name for thumbnail
+          const encryptedThumbnailName = createEncryptedFileName(thumbnailFile.name, 'thumbnail');
+          
+          // Upload new thumbnail with encrypted name
           const thumbnailUpload = await storage.createFile(
             thumbnailsBucketId,
             ID.unique(),
-            thumbnailFile
+            thumbnailFile,
+            [Permission.read(Role.any())],
+            encryptedThumbnailName
           );
           thumbnailId = thumbnailUpload.$id;
         }
@@ -480,11 +494,16 @@ const Admin: FC = () => {
             }
           }
           
-          // Upload new video
+          // Create encrypted file name for video
+          const encryptedVideoName = createEncryptedFileName(videoFile.name, 'video');
+          
+          // Upload new video with encrypted name
           const videoUpload = await storage.createFile(
             videosBucketId,
             ID.unique(),
-            videoFile
+            videoFile,
+            [Permission.read(Role.any())],
+            encryptedVideoName
           );
           videoId = videoUpload.$id;
         }
@@ -548,18 +567,26 @@ const Admin: FC = () => {
           return;
         }
       } else {
-        // Upload thumbnail
+        // Create encrypted file names
+        const encryptedThumbnailName = createEncryptedFileName(thumbnailFile!.name, 'thumbnail');
+        const encryptedVideoName = createEncryptedFileName(videoFile!.name, 'video');
+        
+        // Upload thumbnail with encrypted name
         const thumbnailUpload = await storage.createFile(
           thumbnailsBucketId,
           ID.unique(),
-          thumbnailFile!
+          thumbnailFile!,
+          [Permission.read(Role.any())],
+          encryptedThumbnailName
         );
         
-        // Upload video
+        // Upload video with encrypted name
         const videoUpload = await storage.createFile(
           videosBucketId,
           ID.unique(),
-          videoFile!
+          videoFile!,
+          [Permission.read(Role.any())],
+          encryptedVideoName
         );
         
         try {
