@@ -695,13 +695,47 @@ const Admin: FC = () => {
         id
       ) as unknown as Video;
       
-      // Delete video and thumbnail files if they exist
+      // Decrypt file IDs before using them for deletion
+      let decryptedVideoId = '';
+      let decryptedThumbnailId = '';
+      
       if (video.video_id) {
-        await storage.deleteFile(videosBucketId, video.video_id);
+        try {
+          decryptedVideoId = CryptoService.decryptFileId(video.video_id);
+        } catch (err) {
+          console.error('Error decrypting video_id:', err);
+          // If decryption fails, try using the original value (might be unencrypted)
+          decryptedVideoId = video.video_id;
+        }
       }
       
       if (video.thumbnail_id) {
-        await storage.deleteFile(thumbnailsBucketId, video.thumbnail_id);
+        try {
+          decryptedThumbnailId = CryptoService.decryptFileId(video.thumbnail_id);
+        } catch (err) {
+          console.error('Error decrypting thumbnail_id:', err);
+          // If decryption fails, try using the original value (might be unencrypted)
+          decryptedThumbnailId = video.thumbnail_id;
+        }
+      }
+      
+      // Delete video and thumbnail files if they exist
+      if (decryptedVideoId) {
+        try {
+          await storage.deleteFile(videosBucketId, decryptedVideoId);
+        } catch (err) {
+          console.error('Error deleting video file:', err);
+          // Continue even if file deletion fails
+        }
+      }
+      
+      if (decryptedThumbnailId) {
+        try {
+          await storage.deleteFile(thumbnailsBucketId, decryptedThumbnailId);
+        } catch (err) {
+          console.error('Error deleting thumbnail file:', err);
+          // Continue even if file deletion fails
+        }
       }
       
       // Delete video document
