@@ -30,7 +30,6 @@ import FeaturedBanner from '../components/FeaturedBanner';
 import DatabaseSetupModal from '../components/DatabaseSetupModal';
 import CredentialsStatus from '../components/CredentialsStatus';
 import ContactSection from '../components/ContactSection';
-import { AppwriteCredentialsManager } from '../services/AppwriteCredentialsManager';
 
 // Skeleton card component for loading state
 const VideoCardSkeleton: FC = () => {
@@ -100,13 +99,8 @@ const Home: FC = () => {
     
     fetchVideos();
     
-    // Determinar se deve mostrar o botão de configuração
-    try {
-      const projectId = AppwriteCredentialsManager.getProjectId();
-      setShowSetupButton(!projectId);
-    } catch {
-      setShowSetupButton(true);
-    }
+    // Sempre mostrar o botão de configuração (não dependemos mais do Appwrite)
+    setShowSetupButton(false);
   }, [user, page]);
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -286,7 +280,7 @@ const Home: FC = () => {
             alignSelf: { xs: 'flex-start', md: 'center' }
           }}>
             {showSetupButton && (
-              <Tooltip title="Configurar Base de Dados Appwrite">
+              <Tooltip title="Configurar Armazenamento Wasabi">
                 <Button
                   onClick={() => setSetupModalOpen(true)}
                   variant="outlined"
